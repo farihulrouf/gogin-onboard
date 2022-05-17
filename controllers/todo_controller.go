@@ -7,7 +7,7 @@ import (
     "restapi/responses"
     "net/http"
     "time"
-
+    "go.mongodb.org/mongo-driver/bson"
     "github.com/gin-gonic/gin"
     "github.com/go-playground/validator/v10"
     "go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,6 +16,37 @@ import (
 
 var todoCollection *mongo.Collection = configs.GetCollection(configs.DB, "todos")
 var validate = validator.New()
+
+
+func GetAllTodos() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        var todos []models.Todo
+        defer cancel()
+
+        results, err := todoCollection.Find(ctx, bson.M{})
+
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+
+        //reading from the db in an optimal way
+        defer results.Close(ctx)
+        for results.Next(ctx) {
+            var singleTodo models.Todo
+            if err = results.Decode(&singleTodo); err != nil {
+                c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            }
+          
+            todos = append(todos, singleTodo)
+        }
+
+        c.JSON(http.StatusOK,
+            responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": todos}},
+        )
+    }
+}
 
 func CreateTodo() gin.HandlerFunc {
     return func(c *gin.Context) {
