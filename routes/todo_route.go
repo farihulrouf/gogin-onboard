@@ -8,6 +8,7 @@ import (
 
 func TodoRoute(router *gin.Engine)  {
     router.POST("/api/todo", controllers.CreateTodo()) //add this
-    router.GET("/api/todos", controllers.GetAllTodos())
+    router.GET("/api/todos", controllers.GetAllTodos()) //get all
+    router.PUT("/api/todo/:todoId", controllers.EditATodo())
 }
 

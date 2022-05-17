@@ -27,7 +27,8 @@ func GetAllTodos() gin.HandlerFunc {
         results, err := todoCollection.Find(ctx, bson.M{})
 
         if err != nil {
-            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError,
+             Message: "error", Data: map[string]interface{}{"data": err.Error()}})
             return
         }
 
@@ -45,6 +46,54 @@ func GetAllTodos() gin.HandlerFunc {
         c.JSON(http.StatusOK,
             responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": todos}},
         )
+    }
+}
+
+func EditATodo() gin.HandlerFunc {
+    return func(c *gin.Context) {
+       ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        todoId := c.Param("todoId")
+        var todo models.Todo
+        defer cancel()
+        objId, _ := primitive.ObjectIDFromHex(todoId)
+
+        //validate the request body
+        if err := c.BindJSON(&todo); err != nil {
+            c.JSON(http.StatusBadRequest, responses.DataResponse{Status: http.StatusBadRequest, 
+                Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+
+        //use the validator library to validate required fields
+        if validationErr := validate.Struct(&todo); validationErr != nil {
+            c.JSON(http.StatusBadRequest, 
+                responses.DataResponse{Status: http.StatusBadRequest, 
+                Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+            return
+        }
+
+        update := bson.M{"title": todo.Title, "desc": todo.Desc}
+        result, err := todoCollection.UpdateOne(ctx, bson.M{"id": objId}, bson.M{"$set": update})
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, 
+                responses.DataResponse{Status: http.StatusInternalServerError, 
+                Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+
+        //get updated user details
+        var updatedTodo models.Todo
+        if result.MatchedCount == 1 {
+            err := todoCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&updatedTodo)
+            if err != nil {
+                c.JSON(http.StatusInternalServerError, 
+                    responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+                return
+            }
+        }
+
+        c.JSON(http.StatusOK, responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": updatedTodo}})
+        
     }
 }
 
