@@ -17,6 +17,24 @@ import (
 
 var jobCollection *mongo.Collection = configs.GetCollection(configs.DB, "jobs")
 //var validate = validator.New()
+func GetJob() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        jobId := c.Param("jobId")
+        var job models.Job
+        defer cancel()
+      
+        objId, _ := primitive.ObjectIDFromHex(jobId)
+      
+        err := jobCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&job)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+      
+        c.JSON(http.StatusOK, responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": job}})
+    }
+}
 
 func GetAllJob() gin.HandlerFunc {
     return func(c *gin.Context) {

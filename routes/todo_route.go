@@ -16,6 +16,8 @@ func TodoRoute(router *gin.Engine)  {
     router.POST("/api/job", controllers.CreateJob())
     router.GET("/api/jobs", controllers.GetAllJob())
     router.PUT("/api/job/:jobId", controllers.EditJob())
+    router.GET("/api/job/:jobId", controllers.GetJob())
+
 
 }
 
