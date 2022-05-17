@@ -17,6 +17,24 @@ import (
 var todoCollection *mongo.Collection = configs.GetCollection(configs.DB, "todos")
 var validate = validator.New()
 
+func GetTodo() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        todoId := c.Param("todoId")
+        var todo models.Todo
+        defer cancel()
+      
+        objId, _ := primitive.ObjectIDFromHex(todoId)
+      
+        err := todoCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&todo)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+      
+        c.JSON(http.StatusOK, responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": todo}})
+    }
+}
 
 func GetAllTodos() gin.HandlerFunc {
     return func(c *gin.Context) {
