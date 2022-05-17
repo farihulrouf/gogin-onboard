@@ -1,0 +1,52 @@
+package controllers
+
+import (
+    "context"
+    "restapi/configs"
+    "restapi/models"
+    "restapi/responses"
+    "net/http"
+    "time"
+
+    "github.com/gin-gonic/gin"
+    "github.com/go-playground/validator/v10"
+    "go.mongodb.org/mongo-driver/bson/primitive"
+    "go.mongodb.org/mongo-driver/mongo"
+)
+
+var todoCollection *mongo.Collection = configs.GetCollection(configs.DB, "todos")
+var validate = validator.New()
+
+func CreateTodo() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        var todo models.Todo
+        defer cancel()
+
+        //validate the request body
+        if err := c.BindJSON(&todo); err != nil {
+            c.JSON(http.StatusBadRequest, responses.DataResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+
+        //use the validator library to validate required fields
+        if validationErr := validate.Struct(&todo); validationErr != nil {
+            c.JSON(http.StatusBadRequest, responses.DataResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+            return
+        }
+
+        newTodo := models.Todo{
+            Id:       primitive.NewObjectID(),
+            Title:     todo.Title,
+            Desc: todo.Desc,
+        }
+      
+        result, err := todoCollection.InsertOne(ctx, newTodo)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+
+        c.JSON(http.StatusCreated, responses.DataResponse{Status: http.StatusCreated, Message: "success", Data: map[string]interface{}{"data": result}})
+    }
+}
