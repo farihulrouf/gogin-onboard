@@ -7,13 +7,6 @@ import (
 
 func main() {
         router := gin.Default()
-        /*
-        router.GET("/", func(c *gin.Context) {
-                c.JSON(200, gin.H {
-                        "data" : "Its Oe From Gin-gonix & mondoDB",
-                })
-        })
-        */
         //connect to mongodb
         configs.ConnectDB()
 

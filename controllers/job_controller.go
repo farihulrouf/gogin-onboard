@@ -161,3 +161,40 @@ func CreateJob() gin.HandlerFunc {
   }
 
 }
+
+func DeleteAJob() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        jobId := c.Param("jobId")
+        defer cancel()
+      
+        objId, _ := primitive.ObjectIDFromHex(jobId)
+      
+        result, err := jobCollection.DeleteOne(ctx, bson.M{"id": objId})
+      
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, responses.DataResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+            return
+        }
+      
+        if result.DeletedCount < 1 {
+            c.JSON(http.StatusNotFound,
+                responses.DataResponse{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": "Data with specified ID not found!"}},
+            )
+            return
+        }
+      
+        c.JSON(http.StatusOK,
+            responses.DataResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": "Data successfully deleted!"}},
+        )
+    }
+}
+
+func GetUpload() gin.HandlerFunc {
+    return func(c *gin.Context) {
+          c.JSON(200, gin.H {
+                        "data" : "Its Oe From Gin-gonix & mondoDB",
+         })
+    }
+}
+
