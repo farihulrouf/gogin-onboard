@@ -26,5 +26,10 @@ func RouteGo(router *gin.Engine)  {
     router.GET("/api/getallfile", controllers.GetAllTradeFile())
 
 
+    //Post
+    router.POST("/api/post", controllers.CreatePost())
+    router.GET("/api/posts", controllers.GetAllPost())
+
+
 }
 
