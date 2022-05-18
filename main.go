@@ -11,7 +11,7 @@ func main() {
         configs.ConnectDB()
 
 
-        routes.RouteGo(router) //add this
+        routes.RouteGo(router) 
 
         router.Run(":8080")
 }
