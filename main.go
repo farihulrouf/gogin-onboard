@@ -13,7 +13,7 @@ func main() {
 
         routes.RouteGo(router) //add this
 
-        router.Run(":7000")
+        router.Run(":8080")
 }
 
 
