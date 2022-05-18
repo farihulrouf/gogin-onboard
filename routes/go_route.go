@@ -6,7 +6,7 @@ import (
     "github.com/gin-gonic/gin"
 )
 
-func TodoRoute(router *gin.Engine)  {
+func RouteGo(router *gin.Engine)  {
     router.POST("/api/todo", controllers.CreateTodo()) //add this
     router.GET("/api/todos", controllers.GetAllTodos()) //get all
     router.PUT("/api/todo/:todoId", controllers.EditATodo())
@@ -18,7 +18,12 @@ func TodoRoute(router *gin.Engine)  {
     router.PUT("/api/job/:jobId", controllers.EditJob())
     router.GET("/api/job/:jobId", controllers.GetJob())
     router.DELETE("/api/job/:jobId", controllers.DeleteAJob())
+
     router.GET("/api/upload", controllers.GetUpload())
+
+
+    router.POST("/api/createfile", controllers.CreateFile())
+    router.GET("/api/getallfile", controllers.GetAllTradeFile())
 
 
 }

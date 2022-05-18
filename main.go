@@ -11,7 +11,7 @@ func main() {
         configs.ConnectDB()
 
 
-        routes.TodoRoute(router) //add this
+        routes.RouteGo(router) //add this
 
         router.Run(":7000")
 }
